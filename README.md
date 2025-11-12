@@ -5,10 +5,7 @@ Este proyecto consiste en desarrollar un **chatbot con inteligencia artificial**
 
 > *"La canción más escuchada de Coldplay tiene más del doble de escuchas que la canción más escuchada de Melendi."*
 
-El chatbot será capaz de **confirmar o negar** dichas hipótesis mediante un **razonamiento basado en datos** almacenados en una base de datos **PostgreSQL**, estructurada en **tres capas (bronce, plata y oro)**.
-
-El sistema ofrecerá **respuestas argumentadas** basándose en esta base de datos, la cual será alimentada por **fuentes de datos preprocesadas** (CSV, APIs, etc.).  
-El módulo de IA estará **basado en un modelo de lenguaje de Hugging Face**.
+El chatbot será capaz de **confirmar o negar** dichas hipótesis mediante un **razonamiento basado en datos** almacenados en una base de datos **PostgreSQL**, estructurada en **tres capas (bronce, plata y oro)**. El sistema ofrecerá **respuestas argumentadas** basándose en esta base de datos, la cual será alimentada por **fuentes de datos preprocesadas** (CSV, APIs, etc.).   El módulo de IA estará **basado en un modelo de lenguaje de Hugging Face**.
 
 ---
 
