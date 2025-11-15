@@ -33,26 +33,6 @@ El sistema está compuesto por los siguientes componentes:
 
 ---
 
-## Flujo de Trabajo
-
-El flujo de trabajo garantiza que **todas las consultas a los datos estén mediadas por FastAPI**, que:
-1. Prepara el contexto con los datos relevantes desde PostgreSQL.  
-2. Invoca al modelo de lenguaje (LLM) para generar una inferencia.  
-3. Persiste la interacción en la base de datos para **trazabilidad y análisis posterior**.
-
----
-
-## Tecnologías Principales
-
-- **PostgreSQL** – Base de datos principal (Docker)
-- **FastAPI** – Backend y orquestación
-- **Hugging Face Transformers** – Modelo de lenguaje
-- **Python** – Lenguaje principal
-- **Pandas / SQLAlchemy** – Procesamiento y acceso a datos
-- **Tkinter / Streamlit (según versión)** – Interfaz de usuario
-
----
-
 ## Objetivo
 
 Crear un **asistente inteligente y razonador** que no solo devuelva respuestas directas, sino que **explique sus conclusiones con base en evidencia verificable**, combinando procesamiento de lenguaje natural, ingeniería de datos y arquitectura de software moderna.
