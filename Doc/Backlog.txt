@@ -1,11 +1,11 @@
 - Definir alcance,flujo trabajo, arquitectura.						V
 - Investigar la API de Spotify								V
-- Preprocesar los datos de los CSV							X	U
-	+ Escalar los datos								X	U
+- Preprocesar los datos de los CSV							V
+	+ Escalar los datos								V
 - Decidir con qué programar el Orquestador (Airflow/Docker-compose)			V
 - Programar el Orquestador (Airflow)							X
 - Montar el Docker de Postgres								V
-- Montar la base de datos (3 tiers)							X	U
+- Montar la base de datos (3 tiers)							-
 - Definir el modelo de datos								V
 - Montar Prompt Storage (Inesvtigar primero)						X	5
 - Model Storage										X	5
