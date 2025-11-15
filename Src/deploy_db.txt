@@ -1,1 +1,1 @@
-docker run -d --name postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres
+docker run -d --name spotigres -e PASSWORD=SpotifyInPostgres -p 5432:5432 postgres

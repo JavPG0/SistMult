@@ -7,4 +7,4 @@ COPY hello.py /code/hello.py
 
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
-CMD ["python","hello.py"]
+CMD ["python","etl.py"]

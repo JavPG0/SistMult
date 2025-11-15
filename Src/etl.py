@@ -7,17 +7,16 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-CL = "postgresql+psycopg2://{USERNPASSWORD}@127.0.0.1/postgres"
-engine = create_engine(CL, echo=False)
+engine = create_engine("postgresql+psycopg2://{USER}:{PASSWORD}@127.0.0.1/postgres", echo=False)
 
 def main():
-    df = pd.read_csv("https://gist.githubusercontent.com/netj/8836201/raw/6f9306ad21398ea43cba4f7d537619d0e07d5ae3/iris.csv")
+    spotify_youtube = pd.read_csv("Dataset/Spotify_Youtube.csv")
+    track_emotions = pd.read_csv("Dataset/Track_Emotions.csv")
+    track_genres = pd.read_csv("Dataset/Track_Genres.csv")
 
-    df["timestamp"]=[datetime.datetime.now()] * len(df.index)
-
-    print(df)
-
-    df.to_sql(name='iris', con=engine, if_exists='append')
+    spotify_youtube.to_sql(name='spotify_youtube', con=engine, if_exists='append')
+    track_emotions.to_sql(name='track_emotions', con=engine, if_exists='append')
+    track_genres.to_sql(name='track_genres', con=engine, if_exists='append')
 
 if __name__ == "__main__":
     main()
