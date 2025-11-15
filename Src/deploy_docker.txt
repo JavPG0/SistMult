@@ -1,1 +1,1 @@
-docker build -t spotigres .
+docker build -t postgres .

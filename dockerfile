@@ -3,7 +3,7 @@ FROM  python:3.9
 WORKDIR /code
 
 COPY requirements.txt /code/requirements.txt
-COPY hello.py /code/hello.py
+COPY /Src/etl.py /code/etl.py
 
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
