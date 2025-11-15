@@ -4,6 +4,8 @@ import pandas as pd
 from sqlalchemy import create_engine
 from dotenv import load_dotenv
 
+from preproceso import Preproceso
+
 load_dotenv()
 
 user = os.getenv("USER")
@@ -24,6 +26,10 @@ def main():
     spotify_youtube.to_sql(name='spotify_youtube', con=engine, schema='bronze', if_exists='replace', index=False)
     track_emotions.to_sql(name='track_emotions', con=engine, schema='bronze', if_exists='replace', index=False)
     track_genres.to_sql(name='track_genres', con=engine, schema='bronze', if_exists='replace', index=False)
+
+    preprocesador = Preproceso
+    unified = preprocesador.preprocesar(spotify_youtube, track_emotions, track_genres)
+    unified.to_sql(name='unified', con=engine, schema='silver', if_exists='replace', index=False)
 
 if __name__ == "__main__":
     main()
