@@ -1,7 +1,7 @@
-- Implementar logs									X
+- Implementar logs									X U
 - Definir alcance,flujo trabajo, arquitectura.						V
 - Investigar la API de Spotify								V
-- Preprocesar los datos de los CSV							V
+- Preprocesar los datos de los CSV							X U
 	+ Escalar los datos								V
 - Decidir con qué programar el Orquestador (Airflow/Docker-compose)			V
 - Programar el Orquestador (Airflow)							X
@@ -13,7 +13,7 @@
 - Defnir endpoint para inferencia de X (festivales en los que toca una banda) online	X
 - Montar la API de Servicio con fastapi							X
 	+ Conectar la API de servicio con la base de datos				X
-- Desarrollar la Interfaz gráfica en Python						X
-- Escoger el LLM de Hugging Face para el Chatbot					X
+- Desarrollar la Interfaz gráfica en Python						X U
+- Escoger el LLM de Hugging Face para el Chatbot					X U
 	+ Conectar el LLM con la Base de Datos						X
 	+ Conectar la Interfaz Gráfica con el Chatbot					X
