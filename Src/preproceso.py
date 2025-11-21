@@ -1,14 +1,14 @@
 import pandas as pd
-from rapidfuzz import process, fuzz
 import unidecode
 import re
+from rapidfuzz import process, fuzz
 from sklearn import preprocessing
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.impute import KNNImputer
 
 class Preproceso:
 
-    def normalize_name(s):
+    def normalize_name(self, s):
 
         if not isinstance(s, str):
             salida = ""
@@ -22,10 +22,10 @@ class Preproceso:
             salida = s
         return salida
 
-    def get_first_letter(s):
+    def get_first_letter(self, s):
         return s[0] if isinstance(s, str) and len(s) > 0 else "_"
-    
-    def fast_fuzzy_match(df_source, df_target, threshold=60):
+
+    def fast_fuzzy_match(self, df_source, df_target, threshold=60):
         results = []
         for letter in df_source['first_letter'].unique():
             src_subset = df_source[df_source['first_letter'] == letter]
@@ -120,7 +120,7 @@ class Preproceso:
         Unified = Unified.drop(columns=['artist_track_genre', 'artist_track_emotion'], errors='ignore')
 
         # Eliminar columnas que no sirven una vez hecho el merge
-        Unified.drop(columns=['match_emotion', 'match_genre','Artist', 'track_name', 'first_letter'], inplace=True)
+        Unified.drop(columns=['match_emotion', 'match_genre', 'Artist', 'track_name', 'first_letter'], inplace=True)
 
         # ============================================
         # RELLENO DE VALORES FALTANTES
@@ -144,5 +144,5 @@ class Preproceso:
         numeric_cols = Unified.select_dtypes(include=['float64', 'int64']).columns
         min_max_scaler = MinMaxScaler()
         Unified[numeric_cols] = min_max_scaler.fit_transform(Unified[numeric_cols])
-        
+
         return Unified
