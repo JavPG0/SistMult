@@ -137,7 +137,9 @@ class Preproceso:
             Unified[col] = Unified.groupby('artist_name')[col].transform(
                 lambda x: x.fillna(x.mode()[0] if not x.mode().empty else global_mode)
             )
-            Unified[col] = Unified[col].fillna(global_mode, inplace=True)
+            Unified[col] = Unified[col].fillna(global_mode)
+        
+        Unified['Reps'] = Unified['Views'] + Unified['Stream']
 
         # Seleccionar solo columnas numéricas
         # uso de MinMax para normalizar los valores numericos
@@ -146,3 +148,21 @@ class Preproceso:
         Unified[numeric_cols] = min_max_scaler.fit_transform(Unified[numeric_cols])
 
         return Unified
+
+    def convertir_gold(self, Unified):
+
+        Gold = pd.DataFrame()
+
+        Gold['Artista'] = Unified['artist_name']
+        Gold['Canción'] = Unified['Track']
+        Gold['Genero'] = Unified['genre']
+        Gold['Emociones'] = Unified['seeds']
+        Gold['Tonalidad'] = Unified['Key']
+        Gold['Tempo'] = Unified['Tempo']
+        Gold['Reproducciones'] = Unified['Reps']
+        Gold['Likes'] = Unified['Likes']
+        Gold['Comentarios'] = Unified['Comments']
+        Gold['Duracion'] = Unified['Duration_ms']
+        Gold['Popularidad'] = Unified['popularity']
+
+        return Gold
