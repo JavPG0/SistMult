@@ -9,7 +9,7 @@ from preproceso import Preproceso
 
 load_dotenv()
 
-DB = "postgres"
+DB = "spotigres"
 
 user = os.getenv("USER")
 password = os.getenv("PASSWORD")
