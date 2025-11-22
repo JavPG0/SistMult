@@ -1,7 +1,7 @@
 - Implementar logs									X U
 - Definir alcance,flujo trabajo, arquitectura.						V
 - Investigar la API de Spotify								V
-- Preprocesar los datos de los CSV							X U
+- Preprocesar los datos de los CSV							V
 	+ Escalar los datos								V
 - Decidir con qué programar el Orquestador (Airflow/Docker-compose)			V
 - Programar el Orquestador (Airflow)							X
