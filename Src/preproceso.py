@@ -1,14 +1,14 @@
 import pandas as pd
-from rapidfuzz import process, fuzz
 import unidecode
 import re
+from rapidfuzz import process, fuzz
 from sklearn import preprocessing
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.impute import KNNImputer
 
 class Preproceso:
 
-    def normalize_name(s):
+    def normalize_name(self, s):
 
         if not isinstance(s, str):
             salida = ""
@@ -22,10 +22,10 @@ class Preproceso:
             salida = s
         return salida
 
-    def get_first_letter(s):
+    def get_first_letter(self, s):
         return s[0] if isinstance(s, str) and len(s) > 0 else "_"
-    
-    def fast_fuzzy_match(df_source, df_target, threshold=60):
+
+    def fast_fuzzy_match(self, df_source, df_target, threshold=60):
         results = []
         for letter in df_source['first_letter'].unique():
             src_subset = df_source[df_source['first_letter'] == letter]
@@ -55,16 +55,16 @@ class Preproceso:
     def preprocesar(self, Spotify_Youtube, Track_Emotions, Track_Genres):
 
         # Aplicamos normalización a los datasets
-        Spotify_Youtube['artist_name'] = Spotify_Youtube['Artist'].astype(str).apply(self.normalize_name())
-        Spotify_Youtube['track_name']  = Spotify_Youtube['Track'].astype(str).apply(self.normalize_name())
+        Spotify_Youtube['artist_name'] = Spotify_Youtube['Artist'].astype(str).apply(self.normalize_name)
+        Spotify_Youtube['track_name']  = Spotify_Youtube['Track'].astype(str).apply(self.normalize_name)
 
-        Track_Genres['artist_name'] = Track_Genres['artists'].astype(str).apply(self.normalize_name())
-        Track_Genres['track_name']  = Track_Genres['track_name'].astype(str).apply(self.normalize_name())
+        Track_Genres['artist_name'] = Track_Genres['artists'].astype(str).apply(self.normalize_name)
+        Track_Genres['track_name']  = Track_Genres['track_name'].astype(str).apply(self.normalize_name)
         Track_Genres = Track_Genres.rename(columns={'track_genre': 'genre'})
         Track_Genres['genre'] = Track_Genres['genre'].astype(str).str.strip()  # eliminar espacios al inicio y final
 
-        Track_Emotions['artist_name'] = Track_Emotions['artist'].astype(str).apply(self.normalize_name())
-        Track_Emotions['track_name']  = Track_Emotions['track'].astype(str).apply(self.normalize_name())
+        Track_Emotions['artist_name'] = Track_Emotions['artist'].astype(str).apply(self.normalize_name)
+        Track_Emotions['track_name']  = Track_Emotions['track'].astype(str).apply(self.normalize_name)
 
         # ============================================
         # Crear columnas combinadas (artista + canción)
@@ -83,9 +83,9 @@ class Preproceso:
         # Coincidencia difusa optimizada (compatible con rapidfuzz 3.x)
         # ============================================
 
-        Spotify_Youtube['first_letter'] = Spotify_Youtube['artist_name'].apply(self.get_first_letter())
-        Track_Genres_Unique['first_letter'] = Track_Genres_Unique['artist_name'].apply(self.get_first_letter())
-        Track_Emotions_Unique['first_letter'] = Track_Emotions_Unique['artist_name'].apply(self.get_first_letter())
+        Spotify_Youtube['first_letter'] = Spotify_Youtube['artist_name'].apply(self.get_first_letter)
+        Track_Genres_Unique['first_letter'] = Track_Genres_Unique['artist_name'].apply(self.get_first_letter)
+        Track_Emotions_Unique['first_letter'] = Track_Emotions_Unique['artist_name'].apply(self.get_first_letter)
 
         # Ejecutamos coincidencias difusas
         Spotify_Youtube = Spotify_Youtube.copy()
@@ -120,7 +120,7 @@ class Preproceso:
         Unified = Unified.drop(columns=['artist_track_genre', 'artist_track_emotion'], errors='ignore')
 
         # Eliminar columnas que no sirven una vez hecho el merge
-        Unified.drop(columns=['match_emotion', 'match_genre','Artist', 'track_name', 'first_letter'], inplace=True)
+        Unified.drop(columns=['match_emotion', 'match_genre', 'Artist', 'track_name', 'first_letter'], inplace=True)
 
         # ============================================
         # RELLENO DE VALORES FALTANTES
@@ -137,12 +137,12 @@ class Preproceso:
             Unified[col] = Unified.groupby('artist_name')[col].transform(
                 lambda x: x.fillna(x.mode()[0] if not x.mode().empty else global_mode)
             )
-            Unified[col].fillna(global_mode, inplace=True)
+            Unified[col] = Unified[col].fillna(global_mode, inplace=True)
 
         # Seleccionar solo columnas numéricas
         # uso de MinMax para normalizar los valores numericos
         numeric_cols = Unified.select_dtypes(include=['float64', 'int64']).columns
         min_max_scaler = MinMaxScaler()
         Unified[numeric_cols] = min_max_scaler.fit_transform(Unified[numeric_cols])
-        
+
         return Unified
