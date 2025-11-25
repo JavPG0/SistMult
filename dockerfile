@@ -10,6 +10,11 @@ COPY /Dataset/Track_Emotions.csv /code/Dataset/Track_Emotions.csv
 COPY /Dataset/Track_Genres.csv /code/Dataset/Track_Genres.csv
 COPY .env /code/.env
 
+COPY /Src/logger_config.py /code/Src/logger_config.py
+COPY /Src/logger_decorators.py /code/Src/logger_decorators.py
+
+RUN mkdir -p /code/logs
+
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 CMD ["python3","./etl.py"]
