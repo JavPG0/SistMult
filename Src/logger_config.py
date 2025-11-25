@@ -29,28 +29,28 @@ class JsonFormatter(logging.Formatter):
         #Convert to JSON string
         return json.dumps(log_data)
     
-    def setup_logger(name, log_file, level=logging.INFO):
-        """Function to setup a logger with JSON formatting."""
-        logger = logging.getLogger(name)
-        logger.setLevel(level)
+def setup_logger(name, log_file, level=logging.INFO):
+    """Function to setup a logger with JSON formatting."""
+    logger = logging.getLogger(name)
+    logger.setLevel(level)
 
-        #Clear previous handlers
-        logger.handlers.clear()
+    #Clear previous handlers
+    logger.handlers.clear()
 
-        #Create first handler (console)
-        console_handler = logging.StreamHandler()
-        console_handler.setLevel(level.INFO)
-        console_handler.setFormatter(JsonFormatter())
-        logger.addHandler(console_handler)
+    #Create first handler (console)
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+    console_handler.setFormatter(JsonFormatter())
+    logger.addHandler(console_handler)
 
-        #Create second handler (file)
-        if log_file:
-            file_path = log_dir / log_file
-            file_handler = logging.FileHandler(file_path, encoding='utf-8')
-            file_handler.setLevel(logging.DEBUG) #More details tha the other.
-            file_handler.setFormatter(JsonFormatter())
-            logger.addHandler(file_handler)
+    #Create second handler (file)
+    if log_file:
+        file_path = log_dir / log_file
+        file_handler = logging.FileHandler(file_path, encoding='utf-8')
+        file_handler.setLevel(logging.DEBUG) #More details tha the other.
+        file_handler.setFormatter(JsonFormatter())
+        logger.addHandler(file_handler)
 
-        return logger
+    return logger
     
     

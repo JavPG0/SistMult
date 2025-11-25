@@ -18,7 +18,7 @@ def log_execution(logger):
             # tu código
     """
 
-    def decoratos(func):
+    def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             logger.info(f"Inicio de la función '{func.__name__}'", extra = {'extra_data': {'function': func.__name__, 'args_len': len(args), 'kwargs_keys': list(kwargs)}})
@@ -33,11 +33,10 @@ def log_execution(logger):
             
             except Exception as e:
                 execution_time = time.time() - start_time
-                logger.error(f"Error en la función '{func.__name__}': {e}", extra = {'extra_data': {'function': func.__name__, 'args_len': len(args), 'kwargs_keys': list(kwargs), 'error': str(e)}})
-                exc_info = True
+                logger.error(f"Error en la función '{func.__name__}': {e}", extra = {'extra_data': {'function': func.__name__, 'args_len': len(args), 'kwargs_keys': list(kwargs), 'error': str(e)}}, exc_info = True)
 
                 raise
 
-            return wrapper
+        return wrapper
         
-        return decoratos
+    return decorator

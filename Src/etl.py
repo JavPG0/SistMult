@@ -8,8 +8,13 @@ from datetime import datetime
 
 from preproceso import Preproceso
 
+import sys 
+sys.path.append('/code/Src/')
+
 from logger_config import setup_logger
 from logger_decorators import log_execution
+
+
 
 logger = setup_logger('etl', 'etl_pipeline.log', level = logging.DEBUG)
 
