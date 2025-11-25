@@ -24,8 +24,10 @@ DB = "spotigres"
 
 user = os.getenv("USER")
 password = os.getenv("PASSWORD")
-engine = create_engine(f"postgresql+psycopg2://{user}:{password}@host.docker.internal/{DB}", echo=False)
-
+engine = create_engine(
+    f"postgresql+psycopg2://{user}:{password}@172.17.0.1:5432/{DB}", 
+    echo=False
+)
 @log_execution(logger)
 def main():
 
@@ -45,24 +47,18 @@ def main():
         logger.info("Schemas created successfully")
 
         logger.info("Loading Spotify_Youtube.csv")
-
         spotify_youtube = pd.read_csv("Dataset/Spotify_Youtube.csv")
         spotify_youtube["timestamp"] = [now] * len(spotify_youtube.index)
-
-        logger.info("CSV loaded", extra={'extra_data': {'file': 'Track_Emotions.csv','rows': len(track_emotions),'columns': len(track_emotions.columns)}})
+        logger.info("CSV loaded", extra={'extra_data': {'file': 'Spotify_Youtube.csv','rows': len(spotify_youtube),'columns': len(spotify_youtube.columns)}})
 
         logger.info("Loading Track_Emotions.csv")
-
         track_emotions = pd.read_csv("Dataset/Track_Emotions.csv")
         track_emotions["timestamp"] = [now] * len(track_emotions.index)
-
-        logger.info("CSV loaded", extra={'extra_data': {'file': 'Track_Genres.csv','rows': len(track_genres),'columns': len(track_genres.columns)}})
+        logger.info("CSV loaded", extra={'extra_data': {'file': 'Track_Emotions.csv','rows': len(track_emotions),'columns': len(track_emotions.columns)}})
 
         logger.info("Loading Track_Genres.csv")
-
         track_genres = pd.read_csv("Dataset/Track_Genres.csv")
         track_genres["timestamp"] = [now] * len(track_genres.index)
-
         logger.info("CSV loaded", extra={'extra_data': {'file': 'Track_Genres.csv','rows': len(track_genres),'columns': len(track_genres.columns)}})
 
 
