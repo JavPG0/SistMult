@@ -36,7 +36,7 @@ SELECTORES CSS CLAVE UTILIZADOS:
 import streamlit as st
 import uuid
 # Importacion simulada de la funcion para interactuar con la API del chatbot
-# NOTA: Asegurate de que el archivo 'api_client.py' exista y contenga la funcion 'send_message_to_api'.
+# NOTA: quien lo haga, que se asegure de que el archivo 'api_client.py' exista y contenga la funcion 'send_message_to_api'.
 from api_client import send_message_to_api
 
 # -------------------------
