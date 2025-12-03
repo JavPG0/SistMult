@@ -5,3 +5,4 @@ python-dotenv
 unidecode
 rapidfuzz
 scikit-learn
+streamlit
