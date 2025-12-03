@@ -8,11 +8,11 @@
 - Montar el Docker de Postgres								V
 - Montar la base de datos (3 tiers)							V
 - Definir el modelo de datos								V
-- Montar Prompt Storage (Inesvtigar primero)						X
-- Model Storage										X
-- Montar la API de Servicio con fastapi							X U
-	+ Conectar la API de servicio con la base de datos				X U
-- Desarrollar la Interfaz gráfica en Python						X U
-- Escoger el LLM de Hugging Face para el Chatbot					X U
+- Montar Prompt Storage (Inesvtigar primero)						X U
+- Model Storage										X U
+- Montar la API de Servicio con fastapi							X
+	+ Conectar la API de servicio con la base de datos				X
+- Desarrollar la Interfaz gráfica en Python						V
+- Escoger el LLM de Hugging Face para el Chatbot					V
 	+ Conectar el LLM con la Base de Datos						X
-	+ Conectar la Interfaz Gráfica con el Chatbot					X
+	+ Conectar la Interfaz Gráfica con el Chatbot					X U
