@@ -22,10 +22,10 @@ load_dotenv()
 
 DB = "spotigres"
 
-user = os.getenv("USER")
-password = os.getenv("PASSWORD")
+user = os.getenv("POSTGRES_USER")
+password = os.getenv("POSTGRES_PASSWORD")
 engine = create_engine(
-    f"postgresql+psycopg2://{user}:{password}@172.17.0.1:5432/{DB}", 
+    f"postgresql+psycopg2://{user}:{password}@postgres:5432/{DB}", 
     echo=False
 )
 @log_execution(logger)
