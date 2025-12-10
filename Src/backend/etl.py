@@ -6,7 +6,7 @@ from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
 from datetime import datetime
 
-from Src.backend.preproceso import Preproceso
+from preproceso import Preproceso
 
 import sys 
 sys.path.append('/code/Src/')
@@ -20,10 +20,10 @@ load_dotenv()
 
 DB = "spotigres"
 
-user = os.getenv("USER")
-password = os.getenv("PASSWORD")
+user = os.getenv("POSTGRES_USER")
+password = os.getenv("POSTGRES_PASSWORD")
 engine = create_engine(
-    f"postgresql+psycopg2://{user}:{password}@172.17.0.1:5432/{DB}", 
+    f"postgresql+psycopg2://{user}:{password}@postgres:5432/{DB}", 
     echo=False
 )
 
