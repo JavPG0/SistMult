@@ -2,6 +2,8 @@ from huggingface_hub import InferenceClient
 import os
 from dotenv import load_dotenv
 
+import Src.api as api
+
 load_dotenv()
 
 API_KEY = os.getenv("API_KEY")
