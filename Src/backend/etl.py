@@ -6,15 +6,13 @@ from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
 from datetime import datetime
 
-from preproceso import Preproceso
+from Src.backend.preproceso import Preproceso
 
 import sys 
 sys.path.append('/code/Src/')
 
 from logger_config import setup_logger
 from logger_decorators import log_execution
-
-
 
 logger = setup_logger('etl', 'etl_pipeline.log', level = logging.DEBUG)
 
@@ -28,6 +26,12 @@ engine = create_engine(
     f"postgresql+psycopg2://{user}:{password}@172.17.0.1:5432/{DB}", 
     echo=False
 )
+
+@log_execution(logger)
+def query():
+    with engine.connect() as conn:
+            conn.commit()
+
 @log_execution(logger)
 def main():
 
@@ -61,9 +65,6 @@ def main():
         track_genres["timestamp"] = [now] * len(track_genres.index)
         logger.info("CSV loaded", extra={'extra_data': {'file': 'Track_Genres.csv','rows': len(track_genres),'columns': len(track_genres.columns)}})
 
-
-
-
         # Storing raw data in bronze schema
 
         logger.info("Storing raw data in bronze schema")
@@ -91,6 +92,8 @@ def main():
         gold.to_sql(name='gold', con=engine, schema='gold', if_exists='append', index=False)
 
         logger.info("Data converted and stored successfully in gold schema")
+
+        receiving_queries = True
 
     except Exception as e:
         logger.critical(f"Critical error in ETL pipeline: {str(e)}", exc_info=True)
