@@ -6,7 +6,7 @@ from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
 from datetime import datetime
 
-from Src.preproceso import Preproceso
+from preproceso import Preproceso
 
 import sys 
 sys.path.append('/code/Src/')
