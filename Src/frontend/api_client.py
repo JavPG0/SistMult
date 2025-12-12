@@ -1,8 +1,7 @@
 from huggingface_hub import InferenceClient
 import os
 from dotenv import load_dotenv
-
-import Src.api as api
+#import Src.api as api
 
 load_dotenv()
 
