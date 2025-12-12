@@ -7,3 +7,4 @@ rapidfuzz
 scikit-learn
 streamlit
 huggingface_hub
+requests
