@@ -1,9 +1,9 @@
 - Implementar logs									V
 - Definir alcance,flujo trabajo, arquitectura.						V
-- Investigar la API de Spotify								V
-- Preprocesar los datos de los CSV							V
-	+ Escalar los datos								V
-- Decidir con qué programar el Orquestador (Airflow/Docker-compose)			V
+- Investigar la API de Spotify									V
+- Preprocesar los datos de los CSV									V
+	+ Escalar los datos												V
+- Decidir con qué programar el Orquestador (Airflow/Docker-compose)	V
 - Programar el Orquestador (Docker-compose)							X U P
 - Montar el Docker de Postgres								V
 - Montar la base de datos (3 tiers)							V
@@ -12,10 +12,10 @@
 - Desarrollar la Interfaz gráfica en Python						V
 - Escoger el LLM de Hugging Face para el Chatbot					V
 	+ Conectar la Interfaz Gráfica con el Chatbot					V
-- Montar la API de Servicio con fastapi							X U
-	+ Conectar la API de servicio con la base de datos				X U
+- Montar la API de Servicio con fastapi							V
+	+ Conectar la API de servicio con la base de datos				V
 - Actualizar el conteto del LLM								X U
-- Realiar el Langraph										X
-	+ Greeting												X
-	+ Guardarrailes											X
-	+ DRY_RUN												X
+- Realiar el Langraph										X U
+	+ Greeting												X U
+	+ Guardarrailes											X U
+	+ DRY_RUN												X U

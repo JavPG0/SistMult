@@ -1,11 +1,9 @@
-from fastapi import FastAPI, Body
+from fastapi import FastAPI
+from Src.backend.etl import get_query_data
 
 app = FastAPI()
 
-@app.post("/query")
-def post_query():
-
-
-@app.get("/query")
-def get_query():
-    
+@app.get("/query")  # Enviar y recibir la query inicial y su resultado
+def get_query(query):
+    data = get_query_data(query)
+    return data
