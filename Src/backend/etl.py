@@ -28,9 +28,13 @@ engine = create_engine(
 )
 
 @log_execution(logger)
-def query():
+def get_query_data(query):
+    
     with engine.connect() as conn:
-            conn.commit()
+        data = pd.read_sql(query, conn)
+        data = pd.DataFrame.to_json(data)
+
+    return data
 
 @log_execution(logger)
 def main():
