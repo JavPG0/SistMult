@@ -39,6 +39,16 @@ import uuid
 # NOTA: quien lo haga, que se asegure de que el archivo 'api_client.py' exista y contenga la funcion 'send_message_to_api'.
 from api_client import send_message_to_api
 
+#Importamos grafo de langgraph
+from chatbot_graph import chatbot_graph
+
+import sys
+sys.path.append('/code/Src')
+from logger_config import setup_logger
+
+logger = setup_logger('streamlit_app', 'streamlit_app.log')
+
+
 # -------------------------
 # CONFIG DE PAGINA
 # -------------------------
@@ -283,24 +293,71 @@ for sender, message in st.session_state["messages"]:
 # INPUT DEL USUARIO
 # -------------------------
 # Crea el campo de entrada de chat
-user_msg = st.chat_input("Escribe un mensaje...")
+user_input = st.chat_input("Escribe tu mensaje aquí...")
 
-if user_msg:
-    # 1. Anade el mensaje del usuario al historial
-    st.session_state["messages"].append(("user", user_msg))
-
-    try:
-        # 2. Envia el mensaje a la API del chatbot (simulado)
-        bot_reply = send_message_to_api(
-            message=user_msg,
-            session_id=st.session_state["session_id"]
-        )
-    except Exception as e:
-        # Manejo basico de errores de conexion
-        bot_reply = f"Error conectando al servidor: {e}"
-
-    # 3. Anade la respuesta del bot al historial
-    st.session_state["messages"].append(("bot", bot_reply))
-
-    # 4. Vuelve a ejecutar la aplicacion para actualizar la interfaz
+if user_input:
+    logger.info(f"[APP] Nueva consulta del usuario: {user_input}...")
+    
+    st.session_state["messages"].append(("user", user_input))
+    
+    with st.spinner("Analizando tu consulta..."):
+        try:
+            logger.info("[APP] Invocando grafo de LangGraph")
+            
+            result = chatbot_graph.invoke({
+                "user_query": user_input,
+                "is_greeting": False,
+                "sql_query": None,
+                "sql_results": None,
+                "hypothesis_valid": None,
+                "final_answer": "",
+                "errors": []
+            })
+            
+            logger.debug(f"[APP] Resultado del grafo: {result}")
+            
+            # Constuccion de la respuesta (meterle buen checkeo a esto)
+            
+            botresponse = result.get("final_answer")
+            
+            # Si el nodo validador ya generó la respuesta final, usarla
+            if botresponse:
+                logger.info("[APP] Usando respuesta del grafo")
+            
+            # Si no hay respuesta, construirla desde los resultados
+            else:
+                logger.warning("[APP] Construyendo respuesta desde resultados")
+                
+                # Caso 1: Hay errores
+                if result.get("errors"):
+                    botresponse =  "**Se encontraron errores:**\n\n"
+                    for error in result["errors"]:
+                        botresponse += f"- {error}\n"
+                
+                # Caso 2: Hay resultados SQL
+                elif result.get("sql_results"):
+                    botresponse = f"**Resultados obtenidos:** {len(result['sql_results'])} fila(s)\n\n"
+                    for i, row in enumerate(result['sql_results'][:10], 1):
+                        botresponse += f"{i}. {row}\n"
+                
+                # Caso 3: Sin errores ni resultados
+                else:
+                    botresponse = "No se generó una respuesta. Por favor, intenta de nuevo."
+            
+            st.session_state["messages"].append(("assistant", botresponse))
+            logger.info("[APP] Respuesta enviada al usuario")
+            
+        except Exception as e:
+            import traceback
+            error_details = traceback.format_exc()
+            
+            logger.error(f"[APP] Error en la aplicación: {e}", exc_info=True)
+            
+            error_message = f"**Error inesperado**\n\n{str(e)}"
+            
+            with st.expander("Detalles técnicos"):
+                st.code(error_details)
+            
+            st.session_state["messages"].append(("assistant", error_message))
+    
     st.rerun()

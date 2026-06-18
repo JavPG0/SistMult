@@ -3,6 +3,14 @@ import os
 from dotenv import load_dotenv
 #import Src.api as api
 
+#Imports para logger.
+import sys 
+sys.path.append('/code/Src')
+from logger_config import setup_logger
+from logger_decorators import log_execution               
+                
+logger = setup_logger('api_client', 'api_client.log')
+
 load_dotenv()
 
 API_KEY = os.getenv("API_KEY")
@@ -29,7 +37,7 @@ except Exception as e:
     print(f"[ERROR CRÍTICO] Fallo al inicializar InferenceClient: {e}")
     client = None
 
-
+@log_execution(logger)
 def send_message_to_api(message, session_id=None, history=None):
     """
     Gestiona la comunicación con el LLM.
@@ -49,6 +57,15 @@ def send_message_to_api(message, session_id=None, history=None):
         str: La respuesta generada por el modelo o un mensaje de error controlado.
     """
 
+    logger.info("Iniciando llamada al LLM", extra={
+        'extra_data': {
+            'message_length': len(message),
+            'has_history': history is not None,
+            'session_id': session_id
+        }
+    })
+
+
     # Fail-safe por si la inicialización global falló
     if client is None:
         return "Error 500: El servicio de inferencia no está disponible."
@@ -65,82 +82,172 @@ def send_message_to_api(message, session_id=None, history=None):
     messages_payload = [
         {
             "role": "system", 
-            "content": """
-                ***Solo puedes devolver sentencias SQL, sin explicación ni lenguaje natural.
-                Eres un agente experto en SQL, traduce la peticion del usuario de lenguaje natural a SQL.
-                Apoyate en el modelo semantico de los datos que te proporciono para generar la SQL.***
+            "content": """Eres un experto en SQL y análisis de hipótesis. Tu tarea es traducir hipótesis o preguntas del usuario en consultas SQL que obtengan los datos necesarios para validar esa hipótesis.
 
-                El modelo semantico es un json que sigue la siguiente estructura:
-                    - Hay un campo schema que indica el schema donde se encuentra la tabla en la base de datos.
-                    - Hay un campo tabla que indica la tabla donde se encuentran las columnas.
-                    - Hay un campo columna que indica la columna donde se encuentran los datos.
-                    - Hay un campo descripcion que indica qué representan los datos de esa columna.
+    ⚠️ IMPORTANTE: Solo devuelves código SQL puro, sin explicaciones.
 
-                Dentro de cada schema hay un array de tablas.
-                Dentro de cada tabla tabla hay un array de columnas.
-                Dentro de cada columna se encuentra su descripcion.
+    ═══════════════════════════════════════════════════════════
+    🎯 TU OBJETIVO
+    ═══════════════════════════════════════════════════════════
 
-                Sigue estas ***reglas***:
-                    - Devuelve unicamente la SQL generada, sin explicación.
-                    - Haz la SQL de la manera más sencilla posible.
-                    - Siempre que puedas, utiliza los datos del schema gold.
-                    - No utilices los datos del schema silver a no ser que sea estríctamente necesario.
-                    - Siempre intenta utilizar los datos de las filas con el "timestamp" más reciente.
-                    - Ten en cuenta que los datos numéricos están escalados entre 0 y 1 para que sea más facil su comparación. Por eso es importante que, si recibes algún valor numérico en la petición del usuario, lo intentes adaptar si fuera necesario.
+    Cuando el usuario te da una HIPÓTESIS (por ejemplo: "El rock tiene más likes que el pop"), debes:
 
-                <Modelo semantico de los datos>
-                {
-                    "schema": "gold"[
-                        {
-                        "tabla": "gold"[
-                            {
-                            "columna": "Artista"
-                            "descripcion": "Artista al que se le atribuye la canción."
-                            },
-                            {
-                            "columna": "Canción"
-                            "descripcion": "Canción a la que se le atribuyen las métricas del resto de columnas."
-                            },
-                            {
-                            "columna": "Género"
-                            "descripcion": "Género musical que se le atribuye a la canción."
-                            },
-                            {
-                            "columna": "Emociones"
-                            "descripcion": "Emociones que transmite la canción."
-                            },
-                            {
-                            "columna": "Tonalidad"
-                            "descripcion": "Tonalidad que tiene la canción la canción."
-                            },
-                            {
-                            "columna": "Tempo"
-                            "descripcion": "Tempo que tiene la canción."
-                            },
-                            {
-                            "columna": "Reproducciones"
-                            "descripcion": "Número de reproducciones que ha tenido la canción."
-                            },
-                            {
-                            "columna": "Likes"
-                            "descripcion": "Número de likes que ha tenido la canción."
-                            },
-                            {
-                            "columna": "Popularidad"
-                            "descripcion": "Valor que representa la popularidad general de la canción."
-                            },
-                            {
-                            "columna": "timestamp"
-                            "descripcion": "Fecha y hora en la que esa fila ha sido introducida en la tabla."
-                            },
-                        ]
-                        }
-                    ]
-                    }
-                    </Modelo semantico de los datos>
-                    """
+    1. Identificar QUÉ DATOS se necesitan para validar esa hipótesis
+    2. Generar la SQL que obtenga EXACTAMENTE esos datos
+    3. Los datos serán usados por otro sistema para confirmar o refutar la hipótesis
+
+    ═══════════════════════════════════════════════════════════
+    📋 ESTRUCTURA DE LA BASE DE DATOS
+    ═══════════════════════════════════════════════════════════
+
+    TABLA: gold.gold (escribir SIN comillas)
+
+    COLUMNAS (escribir CON comillas dobles):
+    ┌─────────────────────┬──────────┬─────────────────────────────────────┐
+    │ Columna             │ Tipo     │ Descripción                         │
+    ├─────────────────────┼──────────┼─────────────────────────────────────┤
+    │ "Artista"           │ text     │ Nombre del artista                  │
+    │ "Canción"           │ text     │ Nombre de la canción                │
+    │ "Genero"            │ text     │ Género musical (sin tilde)          │
+    │ "Emociones"         │ text     │ Lista de emociones                  │
+    │ "Tonalidad"         │ decimal  │ 0-1 (normalizado)                   │
+    │ "Tempo"             │ decimal  │ 0-1 (normalizado)                   │
+    │ "Reproducciones"    │ decimal  │ 0-1 (normalizado)                   │
+    │ "Likes"             │ decimal  │ 0-1 (normalizado)                   │
+    │ "Comentarios"       │ decimal  │ 0-1 (normalizado)                   │
+    │ "Duracion"          │ decimal  │ 0-1 (normalizado)                   │
+    │ "Popularidad"       │ decimal  │ 0-1 (normalizado)                   │
+    │ "timestamp"         │ timestamp│ Fecha de inserción                  │
+    └─────────────────────┴──────────┴─────────────────────────────────────┘
+
+    ⚡ IMPORTANTE: Los valores numéricos están normalizados (0 = mínimo, 1 = máximo)
+
+    ═══════════════════════════════════════════════════════════
+    ✅ REGLAS DE SINTAXIS
+    ═══════════════════════════════════════════════════════════
+
+    ✓ Tabla: FROM gold.gold (sin comillas)
+    ✓ Columnas: SELECT "Artista", "Canción" (con comillas dobles)
+    ✓ Valores texto: WHERE "Genero" = 'pop' (comillas simples)
+    ✗ NO uses markdown: ``````
+
+    ═══════════════════════════════════════════════════════════
+    📚 EJEMPLOS DE HIPÓTESIS → SQL
+    ═══════════════════════════════════════════════════════════
+
+    🔹 HIPÓTESIS: "El rock tiene más likes que el pop"
+    ANÁLISIS: Necesito comparar el promedio de likes de rock vs pop
+    SQL:
+    SELECT "Genero", AVG("Likes") as likes_promedio
+    FROM gold.gold
+    WHERE "Genero" IN ('rock', 'pop')
+    GROUP BY "Genero"
+    ORDER BY likes_promedio DESC;
+
+    🔹 HIPÓTESIS: "Bad Bunny es el artista más popular"
+    ANÁLISIS: Necesito ver la popularidad promedio por artista
+    SQL:
+    SELECT "Artista", AVG("Popularidad") as popularidad_promedio
+    FROM gold.gold
+    GROUP BY "Artista"
+    ORDER BY popularidad_promedio DESC
+    LIMIT 10;
+
+    🔹 HIPÓTESIS: "El género con más canciones es el pop"
+    ANÁLISIS: Necesito contar canciones por género
+    SQL:
+    SELECT "Genero", COUNT(*) as total_canciones
+    FROM gold.gold
+    GROUP BY "Genero"
+    ORDER BY total_canciones DESC;
+
+    🔹 HIPÓTESIS: "Las canciones con tempo alto tienen más reproducciones"
+    ANÁLISIS: Necesito correlacionar tempo y reproducciones
+    SQL:
+    SELECT "Tempo", AVG("Reproducciones") as reproducciones_promedio
+    FROM gold.gold
+    GROUP BY 
+        CASE 
+            WHEN "Tempo" >= 0.7 THEN 'Alto'
+            WHEN "Tempo" >= 0.4 THEN 'Medio'
+            ELSE 'Bajo'
+        END
+    ORDER BY "Tempo" DESC;
+
+    🔹 HIPÓTESIS: "Taylor Swift tiene más canciones que Drake"
+    ANÁLISIS: Necesito contar canciones de ambos artistas
+    SQL:
+    SELECT "Artista", COUNT(*) as total_canciones
+    FROM gold.gold
+    WHERE "Artista" IN ('Taylor Swift', 'Drake')
+    GROUP BY "Artista";
+
+    🔹 HIPÓTESIS: "El género con más likes tiene un tempo mayor a la media"
+    ANÁLISIS: Necesito el género con más likes y su tempo promedio vs media global
+    SQL:
+    SELECT 
+        "Genero",
+        AVG("Likes") as likes_promedio,
+        AVG("Tempo") as tempo_promedio,
+        (SELECT AVG("Tempo") FROM gold.gold) as tempo_media_global
+    FROM gold.gold
+    GROUP BY "Genero"
+    ORDER BY likes_promedio DESC
+    LIMIT 1;
+
+    🔹 HIPÓTESIS: "Hay más de 1000 canciones en la base de datos"
+    ANÁLISIS: Necesito el conteo total
+    SQL:
+    SELECT COUNT(*) as total_canciones
+    FROM gold.gold;
+
+    🔹 HIPÓTESIS: "Las canciones más recientes son más populares"
+    ANÁLISIS: Necesito comparar popularidad por periodo temporal
+    SQL:
+    SELECT 
+        CASE 
+            WHEN "timestamp" >= NOW() - INTERVAL '30 days' THEN 'Recientes'
+            ELSE 'Antiguas'
+        END as periodo,
+        AVG("Popularidad") as popularidad_promedio
+    FROM gold.gold
+    GROUP BY periodo;
+
+    ═══════════════════════════════════════════════════════════
+    🧠 PROCESO DE RAZONAMIENTO
+    ═══════════════════════════════════════════════════════════
+
+    Para cada hipótesis, pregúntate:
+
+    1. ¿Qué COMPARACIÓN se está haciendo?
+    → Usa GROUP BY y AVG/SUM/COUNT
+
+    2. ¿Qué ENTIDADES se comparan?
+    → Identifica artistas, géneros, rangos numéricos
+
+    3. ¿Se necesita un RANKING o solo valores específicos?
+    → Usa ORDER BY y LIMIT si es necesario
+
+    4. ¿Se compara con la MEDIA GLOBAL?
+    → Usa subconsultas para obtener el promedio total
+
+    5. ¿Hay CONDICIONES específicas?
+    → Usa WHERE para filtrar
+
+    ═══════════════════════════════════════════════════════════
+    ⚡ REGLAS CRÍTICAS
+    ═══════════════════════════════════════════════════════════
+
+    1. Los datos deben ser SUFICIENTES para validar la hipótesis
+    2. Si se comparan entidades, INCLUYE TODAS en la consulta
+    3. Usa agregaciones (AVG, COUNT, SUM) cuando sea necesario
+    4. Ordena resultados de forma útil (DESC para "más/mayor")
+    5. NUNCA devuelvas texto explicativo, solo SQL pura
+
+    RESPONDE ÚNICAMENTE CON LA CONSULTA SQL QUE OBTENGA LOS DATOS NECESARIOS PARA VALIDAR LA HIPÓTESIS."""
         }
     ]
+
 
 # Implementación del schema silver (por si hiciese falta más adelante)
     """
@@ -318,9 +425,15 @@ def send_message_to_api(message, session_id=None, history=None):
     # Si lo añadiéramos, duplicaríamos el último prompt en el contexto.
 
     try:
-        # -----------------------------------------------------
+
+        logger.debug("Enviando request al LLM", extra={
+            'extra_data': {
+                'model': LLAMA_MODEL,
+                'messages_count': len(messages_payload)
+            }
+        })
+
         # Llamada a la API (Inferencia)
-        # -----------------------------------------------------
         completion = client.chat.completions.create(
             model=LLAMA_MODEL,
             messages=messages_payload,
@@ -332,8 +445,114 @@ def send_message_to_api(message, session_id=None, history=None):
 
         # Parsing de la respuesta: Extraemos solo el contenido del mensaje
         respuesta = completion.choices[0].message.content.strip()
+        
+        logger.info("Respuesta recibida del LLM", extra={
+            'extra_data': {
+                'response_length': len(respuesta),
+                'session_id': session_id
+            }
+        })
+        
         return respuesta
 
     except Exception as e:
         # Manejo de errores en tiempo de ejecución (Timeouts, Rate Limits, Auth Errors)
         return f"[API ERROR] No se pudo completar la solicitud: {e}"
+
+@log_execution(logger)
+def validate_hypothesis_with_llm(user_query, sql_results):
+
+    logger.info("Iniciando validación de hipótesis", extra={
+        'extra_data': {
+            'query': user_query[:100],  # Primeros 100 chars
+            'results_count': len(sql_results)
+        }
+    })
+
+    if client is None:
+        return "Error 500: El servicio de inferencia no está disponible."
+    
+    # FORMATEAR LOS RESULTADOS
+    results_text = ""
+    for i, row in enumerate(sql_results[:10], 1):
+        results_text += f"\nFila {i}: {row}"
+    
+    if len(sql_results) > 10:
+        results_text += f"\n\n(Mostrando 10 de {len(sql_results)} resultados totales)"
+    
+    # CONSTRUIR EL PROMPT DE ANÁLISIS
+    user_message = f"""
+        Pregunta/Hipótesis del usuario:
+        {user_query}
+
+        Datos obtenidos de la base de datos:
+        {results_text}
+
+        Analiza si la hipótesis es correcta o incorrecta basándote ÚNICAMENTE en estos datos.
+        """
+    
+    logger.info("Payload de validación construido", extra={
+        'extra_data': {
+            'user_message_length': len(user_message),
+            'message': user_message 
+        }}) 
+            
+    # SYSTEM PROMPT ESPECÍFICO PARA VALIDACIÓN
+    messages_payload = [
+        {
+        "role": "system",
+        "content": """
+        Eres un analista de datos experto y objetivo.
+
+        Tu única tarea es determinar si una hipótesis es CORRECTA o INCORRECTA basándote en los datos proporcionados.
+
+        FORMATO OBLIGATORIO DE RESPUESTA:
+        1. Empieza con la palabra CORRECTA o INCORRECTA
+        2. Después explica brevemente por qué, citando datos específicos
+
+        Ejemplo de respuesta correcta:
+        "CORRECTA
+        Según los datos, la canción 'Shake It Off' de Taylor Swift tiene una popularidad de 0.95, siendo la más alta de todas las 150 canciones analizadas."
+
+        Ejemplo de respuesta incorrecta:
+        "INCORRECTA
+        Los datos muestran que Bad Bunny tiene 12 canciones mientras que Taylor Swift tiene 15, por lo tanto la hipótesis no se cumple."
+
+        Sé objetivo, preciso y cita siempre los números de los datos.
+        """
+        },
+        {
+            "role": "user",
+            "content": user_message
+        }
+    ]
+    
+    try:
+        # LLAMADA A LA API
+        completion = client.chat.completions.create(
+            model=LLAMA_MODEL,
+            messages=messages_payload,
+            temperature=0.5,  # Más bajo que el de SQL para ser más consistente
+            max_tokens=500,
+            top_p=0.9
+        )
+        
+        logger.debug("Enviando request al LLM", extra={
+            'extra_data': {
+                'model': LLAMA_MODEL,
+                'messages_count': len(messages_payload)
+            }
+        })
+            
+        respuesta = completion.choices[0].message.content.strip()
+        
+        logger.info("Validación completada", extra={
+            'extra_data': {
+                'response_length': len(respuesta)
+            }
+        })
+        
+        return respuesta
+        
+    except Exception as e:
+        return f"[API ERROR] Error al validar hipótesis: {e}"
